@@ -15,10 +15,13 @@ public abstract class AbstractScreenState implements IScreenState {
 
     protected String activityName;
     protected String packageName;
+    protected String screenTitle;
     protected List<Widget> widgets;
+    protected List<RelatedState> relatedStates;
 
     public AbstractScreenState(String packageName, String activityName){
         widgets = new ArrayList<>();
+        relatedStates = new ArrayList<RelatedState>();
         this.packageName = packageName;
         this.activityName = activityName;
     }
@@ -70,5 +73,30 @@ public abstract class AbstractScreenState implements IScreenState {
 
     public void setPackageName(String packageName) {
         this.packageName = packageName;
+    }
+
+    public String getScreenTitle() {
+        return screenTitle;
+    }
+
+    public void setScreenTitle(String screenTitle) {
+        this.screenTitle = screenTitle;
+    }
+
+    private RelatedState getRelatedState(String stateId){
+        for (RelatedState relatedState: relatedStates){
+            if (relatedState.getState().getId().equals(stateId))
+                return relatedState;
+        }
+        return null;
+    }
+
+    public void addRelatedState(IScreenState state, String difference){
+        if (getRelatedState(state.getId())==null)
+            relatedStates.add(new RelatedState(state,difference));
+    }
+
+    public List<RelatedState> getRelatedStates(){
+        return relatedStates;
     }
 }

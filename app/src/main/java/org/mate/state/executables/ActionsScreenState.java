@@ -29,6 +29,7 @@ public class ActionsScreenState extends AbstractScreenState {
     private AppScreen appScreen;
     private AccessibilityNodeInfo rootNodeInfo;
     private String sessionID;
+    private String typeOfNewState;
 
     @Override
     public String getId() {
@@ -44,10 +45,13 @@ public class ActionsScreenState extends AbstractScreenState {
     public ActionsScreenState(AppScreen appScreen){
         super(appScreen.getPackageName(),appScreen.getActivityName());
         this.widgets = appScreen.getWidgets();
+        this.screenTitle = appScreen.getTitle();
         this.rootNodeInfo = appScreen.getRootNodeInfo();
         actions=null;
+        this.id="";
         this.appScreen = appScreen;
-        sessionID = String.valueOf(Math.abs(String.valueOf(new java.util.Date().getTime()).hashCode()));
+        sessionID = MATE.sessionID;
+        typeOfNewState="";
     }
 
 
@@ -407,7 +411,7 @@ public class ActionsScreenState extends AbstractScreenState {
                 //search by text
                 for (Widget wOther: otherWidgets){
 
-                    if (wThis.getText().equals(wOther.getText())){
+                    if (!wThis.getText().equals("") && wThis.getText().equals(wOther.getText())){
                         found = true;
 
                         if (!wOther.getColor().equals(wThis.getColor()) &&
@@ -424,4 +428,12 @@ public class ActionsScreenState extends AbstractScreenState {
 
     }
 
+
+    public String getTypeOfNewState() {
+        return typeOfNewState;
+    }
+
+    public void setTypeOfNewState(String typeOfNewState) {
+        this.typeOfNewState = typeOfNewState;
+    }
 }

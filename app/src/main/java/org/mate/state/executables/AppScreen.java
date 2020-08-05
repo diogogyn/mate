@@ -12,9 +12,12 @@ import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.StaleObjectException;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject2;
+import android.view.View;
+import android.view.Window;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import android.content.Context;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 import org.mate.MATE;
 import org.mate.Registry;
@@ -34,6 +37,7 @@ import static android.support.test.InstrumentationRegistry.getInstrumentation;
 public class AppScreen {
 
     private String activityName;
+    private String title;
     private String packageName;
     private List<Widget> widgets;
     private static Hashtable<String,String> editTextHints = new Hashtable<String,String>();
@@ -48,6 +52,7 @@ public class AppScreen {
         Instrumentation instrumentation = getInstrumentation();
         device = UiDevice.getInstance(instrumentation);
 
+
         this.widgets = new ArrayList<>();
         this.activityName = Registry.getEnvironmentManager().getCurrentActivityName();
         if (activityName.equals(EnvironmentManager.ACTIVITY_UNKNOWN)) {
@@ -55,6 +60,7 @@ public class AppScreen {
         } else {
             this.packageName = activityName.split("/")[0];
         }
+
         AccessibilityNodeInfo ninfo= InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow();
         if (ninfo==null) {
             MATE.log("APP DISCONNECTED");
@@ -68,18 +74,44 @@ public class AppScreen {
             //Try to reconnect
         }
         rootNodeInfo = ninfo;
+
+        title = "";
+        List<AccessibilityWindowInfo> accWindows = getInstrumentation().getUiAutomation().getWindows();
+        for (AccessibilityWindowInfo accWindowInfo: accWindows){
+            if (accWindowInfo.isActive()){
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (accWindowInfo.getTitle()!=null)
+                        title = accWindowInfo.getTitle().toString();
+                }
+            }
+        }
+
+
         readNodes(ninfo,null);
     }
+
+    public String getTitle(){
+        return title;
+    }
+
+
+    private static int cont = 0;
 
     public void readNodes(AccessibilityNodeInfo obj, Widget parent){
         Widget widget = null;
         if (obj!=null) {
+
+
+
 
             //obj.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             //obj.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             ///obj.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             try {
                 widget = createWidget(obj, parent, activityName);
+
+
             } catch (StaleObjectException e) {
                 MATE.log("StaleObjectException");
             }
@@ -119,12 +151,18 @@ public class AppScreen {
             text = obj.getText().toString();
         }
 
+
+        Rect rec = new Rect();
+        obj.getBoundsInScreen(rec);
+        String bounds = rec.toShortString();
+
+
         String newId = clazz;
         if (id.equals("")) {
 
             if (parent!=null && !parentResourceId.equals("")){
 
-                id = parentResourceId+"-child-"+parent.getChildren().size()+"#"+clazz;
+                id = parentResourceId+"-child-"+parent.getChildren().size()+"#"+clazz+"#"+bounds;
             }
             else
                 id = clazz+"-"+text;
@@ -146,10 +184,9 @@ public class AppScreen {
         widget.setPackageName(wpackageName);
         widget.setEnabled(obj.isEnabled());
 
-        Rect rec = new Rect();
-        obj.getBoundsInScreen(rec);
-        widget.setBounds(rec.toShortString());
+        //obj.focusSearch(View.FOCUS_LEFT);
 
+        widget.setBounds(rec.toShortString());
         int x1=widget.getX1();
         int x2=widget.getX2();
         int y1=widget.getY1();
